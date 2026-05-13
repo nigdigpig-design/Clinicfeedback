@@ -1,0 +1,79 @@
+import { Router } from 'express';
+import { pool } from '../db';
+
+const router = Router();
+
+// POST /api/feedback — сохранить отзыв
+router.post('/', async (req, res) => {
+  try {
+    const { doctor_id, rating, comment } = req.body;
+    
+    if (!doctor_id || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Некорректные данные' });
+    }
+    
+    const result = await pool.query(
+      `INSERT INTO feedbacks (doctor_id, rating, comment, is_anonymous)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, created_at`,
+      [doctor_id, rating, comment || null, true]  // ← всегда true
+    );
+    
+    res.json({ success: true, feedback: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка сохранения отзыва' });
+  }
+});
+
+// НОВЫЙ МАРШРУТ: GET /api/feedback/doctor/:doctorId — получить отзывы о конкретном враче
+router.get('/doctor/:doctorId', async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+    
+    const result = await pool.query(
+      `SELECT 
+        f.id, 
+        f.rating, 
+        f.comment, 
+        f.created_at,
+        CASE 
+          WHEN f.is_anonymous = true THEN 'Анонимно'
+          ELSE 'Пациент'
+        END as author_name
+      FROM feedbacks f
+      WHERE f.doctor_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT 20`,
+      [doctorId]
+    );
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка получения отзывов' });
+  }
+});
+
+// НОВЫЙ МАРШРУТ: GET /api/feedback/doctor/:doctorId/rating — средний рейтинг врача
+router.get('/doctor/:doctorId/rating', async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+    
+    const result = await pool.query(
+      `SELECT 
+        COUNT(*) as total_reviews,
+        ROUND(AVG(rating)::numeric, 1) as average_rating
+      FROM feedbacks
+      WHERE doctor_id = $1`,
+      [doctorId]
+    );
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка получения рейтинга' });
+  }
+});
+
+export default router;
