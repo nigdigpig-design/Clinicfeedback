@@ -8,21 +8,20 @@ databases:
 # Секция для всех сервисов
 services:
   # 1. Backend (Node.js сервер)
+  -services:
   - type: web
     name: clinic-feedback-backend
     runtime: node
     rootDir: backend
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    startCommand: node dist/index.js
     envVars:
-      # Автоматически подставляет строку подключения к БД
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: clinic-feedback-db
-          property: connectionString
-      # Генерирует случайный JWT секрет
+        sync: false
       - key: JWT_SECRET
-        generateValue: true
+        sync: false
 
   # 2. Frontend (React статический сайт)
   - type: web
