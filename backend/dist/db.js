@@ -9,9 +9,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false } // ← Эта строка решает проблему
-        : false
+    ssl: {
+        rejectUnauthorized: false // Эта строка решает проблему
+    }
 });
 exports.pool.connect((err, client, release) => {
     if (err) {
