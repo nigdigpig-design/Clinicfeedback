@@ -14,7 +14,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.set('Content-Type', 'application/json; charset=utf-8');
     next();
 });
 app.use((0, cors_1.default)());
