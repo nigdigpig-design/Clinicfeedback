@@ -1,5 +1,13 @@
+# Секция для баз данных Render Postgres
+databases:
+  - name: clinic-feedback-db   # Имя базы данных
+    databaseName: clinic_feedback  # Имя базы данных внутри Postgres
+    user: clinic_feedback_user     # Пользователь базы данных
+    plan: free                     # Бесплатный тариф (до 256 МБ)
+
+# Секция для всех сервисов
 services:
-  # Бэкенд (Node.js)
+  # 1. Backend (Node.js сервер)
   - type: web
     name: clinic-feedback-backend
     runtime: node
@@ -7,14 +15,16 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
+      # Автоматически подставляет строку подключения к БД
       - key: DATABASE_URL
         fromDatabase:
           name: clinic-feedback-db
           property: connectionString
+      # Генерирует случайный JWT секрет
       - key: JWT_SECRET
         generateValue: true
 
-  # Фронтенд (статический сайт, но через тип web + static)
+  # 2. Frontend (React статический сайт)
   - type: web
     name: clinic-feedback-frontend
     runtime: static
@@ -22,11 +32,6 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: build
     envVars:
+      # Адрес backend'а для запросов из React
       - key: REACT_APP_API_URL
-        value: https://clinic-feedback-backend.onrender.com
-
-  # База данных (PostgreSQL)
-  - type: postgresql
-    name: clinic-feedback-db
-    database: clinic_feedback
-    plan: free
+        value: https://clinic-feedback-backend.onrender.com/api
