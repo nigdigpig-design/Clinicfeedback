@@ -8,13 +8,13 @@ databases:
 # Секция для всех сервисов
 services:
   # 1. Backend (Node.js сервер)
-  - type: web
-    name: clinic-feedback-backend
-    runtime: node
-    rootDir: backend
-    buildCommand: npm install && npm run build
-    startCommand: node dist/index.js
-    envVars:
+   - type: web
+     name: clinic-feedback-backend
+     runtime: node
+     rootDir: backend
+     buildCommand: echo "Skipping build, using pre-built dist"
+     startCommand: node dist/index.js
+     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
@@ -23,13 +23,13 @@ services:
         sync: false
 
   # 2. Frontend (React статический сайт)
-  - type: web
-    name: clinic-feedback-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    envVars:
+   - type: web
+     name: clinic-feedback-frontend
+     runtime: static
+     rootDir: frontend
+     buildCommand: npm install && npm run build
+     staticPublishPath: build
+     envVars:
       # Адрес backend'а для запросов из React
       - key: REACT_APP_API_URL
         value: https://clinic-feedback-backend.onrender.com/api
