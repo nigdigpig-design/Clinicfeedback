@@ -8,7 +8,6 @@ databases:
 # Секция для всех сервисов
 services:
   # 1. Backend (Node.js сервер)
-  -services:
   - type: web
     name: clinic-feedback-backend
     runtime: node
