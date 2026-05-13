@@ -1,4 +1,5 @@
 services:
+  # Бэкенд (Node.js)
   - type: web
     name: clinic-feedback-backend
     runtime: node
@@ -13,15 +14,19 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  - type: static
+  # Фронтенд (статический сайт, но через тип web + static)
+  - type: web
     name: clinic-feedback-frontend
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: build
+    staticPublishPath: build
     envVars:
       - key: REACT_APP_API_URL
         value: https://clinic-feedback-backend.onrender.com
 
+  # База данных (PostgreSQL)
   - type: postgresql
     name: clinic-feedback-db
+    database: clinic_feedback
     plan: free
