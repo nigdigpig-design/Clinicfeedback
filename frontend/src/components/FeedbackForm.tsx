@@ -19,7 +19,7 @@ interface RatingInfo {
   average_rating: string | null;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://clinic-feedback-backend.onrender.com/api';
 
 const FeedbackForm: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);

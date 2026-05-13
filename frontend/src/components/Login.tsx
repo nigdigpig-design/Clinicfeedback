@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://clinic-feedback-backend.onrender.com/api';
 
 const Login: React.FC<{ onLogin: (token: string, user: any) => void }> = ({ onLogin }) => {
   const [login, setLogin] = useState('');

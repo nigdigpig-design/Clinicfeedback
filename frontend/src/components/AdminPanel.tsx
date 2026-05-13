@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://clinic-feedback-backend.onrender.com/api';
 
 const AdminPanel: React.FC = () => {
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
