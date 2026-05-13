@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
         }
         query += ` ORDER BY s.sort_order, d.full_name`;
         const result = await db_1.pool.query(query, params);
+        res.set('Content-Type', 'application/json; charset=utf-8');
         res.json(result.rows);
     }
     catch (err) {
