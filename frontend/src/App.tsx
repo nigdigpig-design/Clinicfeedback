@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import AdminPanel from './components/AdminPanel';  // ← Проверьте, что файл существует
+import AdminPanel from './components/AdminPanel';
 import FeedbackForm from './components/FeedbackForm';
 
-const App: React.FC = () => {
+function App() {
   const [isAuth, setIsAuth] = useState(!!localStorage.getItem('token'));
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<FeedbackForm />} />
         <Route path="/login" element={<Login onLogin={() => setIsAuth(true)} />} />
         <Route path="/admin" element={isAuth ? <AdminPanel /> : <Navigate to="/login" />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
-};
+}
 
-export default App;
+export default App;  // ← ЭТА СТРОКА ОБЯЗАТЕЛЬНА
