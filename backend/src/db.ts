@@ -5,20 +5,18 @@ dotenv.config();
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false  // Эта строка решает проблему
-  },
-  client_encoding: 'utf8'
+  ssl: { rejectUnauthorized: false }
 });
 
 pool.on('connect', (client) => {
   client.query('SET client_encoding = "UTF8"');
 });
+
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('❌ Ошибка подключения к БД:', err.stack);
+    console.error('Ошибка подключения к БД:', err.stack);
   } else {
-    console.log('✅ Подключено к PostgreSQL');
+    console.log('Подключено к PostgreSQL');
     release();
   }
 });

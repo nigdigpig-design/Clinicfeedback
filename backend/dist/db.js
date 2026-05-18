@@ -9,20 +9,17 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false // Эта строка решает проблему
-    },
-    client_encoding: 'utf8'
+    ssl: { rejectUnauthorized: false }
 });
 exports.pool.on('connect', (client) => {
     client.query('SET client_encoding = "UTF8"');
 });
 exports.pool.connect((err, client, release) => {
     if (err) {
-        console.error('❌ Ошибка подключения к БД:', err.stack);
+        console.error('Ошибка подключения к БД:', err.stack);
     }
     else {
-        console.log('✅ Подключено к PostgreSQL');
+        console.log('Подключено к PostgreSQL');
         release();
     }
 });
