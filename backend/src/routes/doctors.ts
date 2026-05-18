@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { pool } from '../db';
+import { convertObjectToUtf8 } from '../utils/encoding';
 
 const router = Router();
 
-// GET /api/doctors — получить всех врачей
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -14,9 +14,10 @@ router.get('/', async (req, res) => {
       ORDER BY s.sort_order, d.full_name
     `);
     
-    // Устанавливаем кодировку UTF-8 перед отправкой
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.json(result.rows);
+    // Перекодируем результат из WIN1251 в UTF-8
+    const decodedRows = convertObjectToUtf8(result.rows);
+    
+    res.json(decodedRows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка получения списка врачей' });

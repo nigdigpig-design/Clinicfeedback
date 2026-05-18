@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { pool } from '../db';
 import { verifyToken, AuthRequest } from '../middleware/auth';
+import { convertObjectToUtf8 } from '../utils/encoding';
 
 const router = Router();
 
 router.use(verifyToken);
 
-// GET /api/admin/feedbacks — получить все отзывы с фильтрацией
 router.get('/feedbacks', async (req: AuthRequest, res) => {
   try {
     const { specialty_id, rating, start_date, end_date } = req.query;
@@ -50,8 +50,10 @@ router.get('/feedbacks', async (req: AuthRequest, res) => {
     
     const result = await pool.query(query, params);
     
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.json(result.rows);
+    // Перекодируем все строковые поля из WIN1251 в UTF-8
+    const decodedRows = convertObjectToUtf8(result.rows);
+    
+    res.json(decodedRows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка получения отзывов' });

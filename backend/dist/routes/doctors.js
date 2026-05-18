@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const db_1 = require("../db");
+const encoding_1 = require("../utils/encoding");
 const router = (0, express_1.Router)();
-// GET /api/doctors — получить всех врачей
 router.get('/', async (req, res) => {
     try {
         const result = await db_1.pool.query(`
@@ -13,9 +13,9 @@ router.get('/', async (req, res) => {
       WHERE d.is_active = true
       ORDER BY s.sort_order, d.full_name
     `);
-        // Устанавливаем кодировку UTF-8 перед отправкой
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.json(result.rows);
+        // Перекодируем результат из WIN1251 в UTF-8
+        const decodedRows = (0, encoding_1.convertObjectToUtf8)(result.rows);
+        res.json(decodedRows);
     }
     catch (err) {
         console.error(err);

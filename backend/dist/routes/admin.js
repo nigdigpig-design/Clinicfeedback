@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const db_1 = require("../db");
 const auth_1 = require("../middleware/auth");
+const encoding_1 = require("../utils/encoding");
 const router = (0, express_1.Router)();
 router.use(auth_1.verifyToken);
-// GET /api/admin/feedbacks — получить все отзывы с фильтрацией
 router.get('/feedbacks', async (req, res) => {
     try {
         const { specialty_id, rating, start_date, end_date } = req.query;
@@ -40,8 +40,9 @@ router.get('/feedbacks', async (req, res) => {
         }
         query += ` ORDER BY f.created_at DESC`;
         const result = await db_1.pool.query(query, params);
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.json(result.rows);
+        // Перекодируем все строковые поля из WIN1251 в UTF-8
+        const decodedRows = (0, encoding_1.convertObjectToUtf8)(result.rows);
+        res.json(decodedRows);
     }
     catch (err) {
         console.error(err);

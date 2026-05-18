@@ -2,34 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const db_1 = require("../db");
+const encoding_1 = require("../utils/encoding");
 const router = (0, express_1.Router)();
-// POST /api/feedback — сохранить отзыв
-router.post('/', async (req, res) => {
-    try {
-        const { doctor_id, rating, comment } = req.body;
-        if (!doctor_id || !rating || rating < 1 || rating > 5) {
-            return res.status(400).json({ error: 'Некорректные данные' });
-        }
-        const result = await db_1.pool.query(`INSERT INTO feedbacks (doctor_id, rating, comment, is_anonymous)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, created_at`, [doctor_id, rating, comment || null, true] // ← всегда true
-        );
-        res.json({ success: true, feedback: result.rows[0] });
-    }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Ошибка сохранения отзыва' });
-    }
-});
-// НОВЫЙ МАРШРУТ: GET /api/feedback/doctor/:doctorId — получить отзывы о конкретном враче
+// GET /api/feedback/doctor/:doctorId — получить отзывы о враче
 router.get('/doctor/:doctorId', async (req, res) => {
     try {
         const doctorId = req.params.doctorId;
         const result = await db_1.pool.query(`SELECT 
-        f.id, 
-        f.rating, 
-        f.comment, 
-        f.created_at,
+        f.id, f.rating, f.comment, f.created_at,
         CASE 
           WHEN f.is_anonymous = true THEN 'Анонимно'
           ELSE 'Пациент'
@@ -38,14 +18,16 @@ router.get('/doctor/:doctorId', async (req, res) => {
       WHERE f.doctor_id = $1
       ORDER BY f.created_at DESC
       LIMIT 20`, [doctorId]);
-        res.json(result.rows);
+        // Перекодируем результат
+        const decodedRows = (0, encoding_1.convertObjectToUtf8)(result.rows);
+        res.json(decodedRows);
     }
     catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Ошибка получения отзывов' });
     }
 });
-// НОВЫЙ МАРШРУТ: GET /api/feedback/doctor/:doctorId/rating — средний рейтинг врача
+// GET /api/feedback/doctor/:doctorId/rating — средний рейтинг врача
 router.get('/doctor/:doctorId/rating', async (req, res) => {
     try {
         const doctorId = req.params.doctorId;
@@ -54,6 +36,7 @@ router.get('/doctor/:doctorId/rating', async (req, res) => {
         ROUND(AVG(rating)::numeric, 1) as average_rating
       FROM feedbacks
       WHERE doctor_id = $1`, [doctorId]);
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.json(result.rows[0]);
     }
     catch (err) {
