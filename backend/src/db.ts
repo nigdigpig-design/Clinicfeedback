@@ -11,6 +11,9 @@ export const pool = new Pool({
   client_encoding: 'utf8'
 });
 
+pool.on('connect', (client) => {
+  client.query('SET client_encoding = "UTF8"');
+});
 pool.connect((err, client, release) => {
   if (err) {
     console.error('❌ Ошибка подключения к БД:', err.stack);

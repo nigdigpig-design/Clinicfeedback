@@ -14,6 +14,9 @@ exports.pool = new pg_1.Pool({
     },
     client_encoding: 'utf8'
 });
+exports.pool.on('connect', (client) => {
+    client.query('SET client_encoding = "UTF8"');
+});
 exports.pool.connect((err, client, release) => {
     if (err) {
         console.error('❌ Ошибка подключения к БД:', err.stack);
