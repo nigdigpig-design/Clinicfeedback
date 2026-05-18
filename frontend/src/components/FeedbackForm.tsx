@@ -21,6 +21,33 @@ interface RatingInfo {
 
 const API_URL = 'https://clinic-feedback-backend.onrender.com/api';
 
+// Функция для преобразования кракозябр в русские буквы
+const fixCyrillic = (str: string): string => {
+  if (!str) return str;
+  try {
+    return decodeURIComponent(escape(str));
+  } catch (e) {
+    return str;
+  }
+};
+
+// Функция для рекурсивного исправления всех строк в объекте
+const fixObjectStrings = <T,>(obj: T): T => {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'string') return fixCyrillic(obj) as any;
+  if (Array.isArray(obj)) return obj.map(item => fixObjectStrings(item)) as any;
+  if (typeof obj === 'object') {
+    const result: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        result[key] = fixObjectStrings(obj[key]);
+      }
+    }
+    return result;
+  }
+  return obj;
+};
+
 const FeedbackForm: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState<number | ''>('');
@@ -30,19 +57,18 @@ const FeedbackForm: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   
-  // Состояния для отзывов
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [ratingInfo, setRatingInfo] = useState<RatingInfo | null>(null);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
 
-  // Загружаем список врачей
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_URL}/doctors`);
-        console.log('Загружены врачи:', response.data);
-        setDoctors(response.data);
+        const fixedData = fixObjectStrings(response.data);
+        console.log('Загружены врачи:', fixedData);
+        setDoctors(fixedData);
         setError('');
       } catch (err) {
         console.error('Ошибка загрузки врачей:', err);
@@ -54,19 +80,16 @@ const FeedbackForm: React.FC = () => {
     fetchDoctors();
   }, []);
 
-  // Загружаем отзывы при выборе врача
   useEffect(() => {
     if (selectedDoctorId) {
       const fetchFeedbacks = async () => {
         setLoadingFeedbacks(true);
         try {
-          // Загружаем отзывы
           const feedbacksResponse = await axios.get(`${API_URL}/feedback/doctor/${selectedDoctorId}`);
-          setFeedbacks(feedbacksResponse.data);
+          setFeedbacks(fixObjectStrings(feedbacksResponse.data));
           
-          // Загружаем рейтинг
           const ratingResponse = await axios.get(`${API_URL}/feedback/doctor/${selectedDoctorId}/rating`);
-          setRatingInfo(ratingResponse.data);
+          setRatingInfo(fixObjectStrings(ratingResponse.data));
         } catch (err) {
           console.error('Ошибка загрузки отзывов:', err);
         } finally {
@@ -89,7 +112,6 @@ const FeedbackForm: React.FC = () => {
     }
 
     try {
-      // Отправляем отзыв — всегда анонимно
       await axios.post(`${API_URL}/feedback`, {
         doctor_id: selectedDoctorId,
         rating,
@@ -104,7 +126,6 @@ const FeedbackForm: React.FC = () => {
     }
   };
 
-  // Форматирование даты
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ru-RU', {
@@ -114,7 +135,6 @@ const FeedbackForm: React.FC = () => {
     });
   };
 
-  // Рендер звёзд
   const renderStars = (ratingValue: number) => {
     return '★'.repeat(ratingValue) + '☆'.repeat(5 - ratingValue);
   };
@@ -167,7 +187,6 @@ const FeedbackForm: React.FC = () => {
         </div>
       )}
       
-      {/* Форма для нового отзыва */}
       <div style={{ backgroundColor: '#f5f5f5', padding: '20px', borderRadius: '10px', marginBottom: '30px' }}>
         <h2>Оставить отзыв</h2>
         <form onSubmit={handleSubmit}>
@@ -235,7 +254,6 @@ const FeedbackForm: React.FC = () => {
         </form>
       </div>
 
-      {/* Отображение отзывов о выбранном враче */}
       {selectedDoctorId && (
         <div>
           <h2>
@@ -285,7 +303,6 @@ const FeedbackForm: React.FC = () => {
   );
 };
 
-// Вспомогательная функция для склонения слов
 function getDeclension(count: number, one: string, two: string, five: string): string {
   const n = Math.abs(count) % 100;
   const n1 = n % 10;
