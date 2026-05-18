@@ -11,7 +11,8 @@ exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false // Эта строка решает проблему
-    }
+    },
+    client_encoding: 'utf8'
 });
 exports.pool.connect((err, client, release) => {
     if (err) {

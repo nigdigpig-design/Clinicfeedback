@@ -7,7 +7,8 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false  // Эта строка решает проблему
-  }
+  },
+  client_encoding: 'utf8'
 });
 
 pool.connect((err, client, release) => {
