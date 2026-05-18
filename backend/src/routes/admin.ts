@@ -6,12 +6,10 @@ const router = Router();
 
 router.use(verifyToken);
 
+// GET /api/admin/feedbacks — получить все отзывы с фильтрацией
 router.get('/feedbacks', async (req: AuthRequest, res) => {
   try {
-    // ПРИНИМАЕМ ПАРАМЕТР rating (не min_rating)
     const { specialty_id, rating, start_date, end_date } = req.query;
-    
-    console.log('ПАРАМЕТРЫ:', { specialty_id, rating, start_date, end_date });
     
     let query = `
       SELECT 
@@ -23,6 +21,7 @@ router.get('/feedbacks', async (req: AuthRequest, res) => {
       JOIN specialties s ON d.specialty_id = s.id
       WHERE 1=1
     `;
+    
     const params: any[] = [];
     let idx = 1;
     
@@ -31,14 +30,10 @@ router.get('/feedbacks', async (req: AuthRequest, res) => {
       params.push(specialty_id);
     }
     
-    // ТОЧНЫЙ ФИЛЬТР ПО ОЦЕНКЕ (используем rating, а не min_rating)
-    if (rating !== undefined && rating !== '') {
+    if (rating && rating !== '') {
       const ratingNum = parseInt(rating as string);
-      console.log(`Фильтр по оценке: rating = ${ratingNum}`);
       query += ` AND f.rating = $${idx++}`;
       params.push(ratingNum);
-    } else {
-      console.log('Нет фильтра по оценке');
     }
     
     if (start_date && start_date !== '') {
@@ -53,13 +48,9 @@ router.get('/feedbacks', async (req: AuthRequest, res) => {
     
     query += ` ORDER BY f.created_at DESC`;
     
-    console.log('SQL:', query);
-    console.log('Params:', params);
-    
     const result = await pool.query(query, params);
-    console.log(`Найдено отзывов: ${result.rows.length}`);
-    console.log('Оценки в результате:', result.rows.map(r => r.rating));
     
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -67,9 +58,14 @@ router.get('/feedbacks', async (req: AuthRequest, res) => {
   }
 });
 
+// GET /api/admin/specialties — список специальностей для фильтра
 router.get('/specialties', async (req: AuthRequest, res) => {
   try {
-    const result = await pool.query(`SELECT id, name FROM specialties ORDER BY name`);
+    const result = await pool.query(`
+      SELECT id, name FROM specialties ORDER BY name
+    `);
+    
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json(result.rows);
   } catch (err) {
     console.error(err);

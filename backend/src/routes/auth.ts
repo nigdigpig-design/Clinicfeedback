@@ -30,6 +30,7 @@ router.post('/login', async (req, res) => {
     
     const token = generateToken(user.id, user.login, user.role);
     
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json({
       success: true,
       token,

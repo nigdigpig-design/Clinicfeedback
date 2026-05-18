@@ -20,6 +20,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
         const token = (0, auth_1.generateToken)(user.id, user.login, user.role);
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.json({
             success: true,
             token,

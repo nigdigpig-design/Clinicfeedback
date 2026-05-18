@@ -5,11 +5,10 @@ const db_1 = require("../db");
 const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 router.use(auth_1.verifyToken);
+// GET /api/admin/feedbacks — получить все отзывы с фильтрацией
 router.get('/feedbacks', async (req, res) => {
     try {
-        // ПРИНИМАЕМ ПАРАМЕТР rating (не min_rating)
         const { specialty_id, rating, start_date, end_date } = req.query;
-        console.log('ПАРАМЕТРЫ:', { specialty_id, rating, start_date, end_date });
         let query = `
       SELECT 
         f.id, f.rating, f.comment, f.created_at,
@@ -26,15 +25,10 @@ router.get('/feedbacks', async (req, res) => {
             query += ` AND s.id = $${idx++}`;
             params.push(specialty_id);
         }
-        // ТОЧНЫЙ ФИЛЬТР ПО ОЦЕНКЕ (используем rating, а не min_rating)
-        if (rating !== undefined && rating !== '') {
+        if (rating && rating !== '') {
             const ratingNum = parseInt(rating);
-            console.log(`Фильтр по оценке: rating = ${ratingNum}`);
             query += ` AND f.rating = $${idx++}`;
             params.push(ratingNum);
-        }
-        else {
-            console.log('Нет фильтра по оценке');
         }
         if (start_date && start_date !== '') {
             query += ` AND f.created_at::date >= $${idx++}`;
@@ -45,11 +39,8 @@ router.get('/feedbacks', async (req, res) => {
             params.push(end_date);
         }
         query += ` ORDER BY f.created_at DESC`;
-        console.log('SQL:', query);
-        console.log('Params:', params);
         const result = await db_1.pool.query(query, params);
-        console.log(`Найдено отзывов: ${result.rows.length}`);
-        console.log('Оценки в результате:', result.rows.map(r => r.rating));
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.json(result.rows);
     }
     catch (err) {
@@ -57,9 +48,13 @@ router.get('/feedbacks', async (req, res) => {
         res.status(500).json({ error: 'Ошибка получения отзывов' });
     }
 });
+// GET /api/admin/specialties — список специальностей для фильтра
 router.get('/specialties', async (req, res) => {
     try {
-        const result = await db_1.pool.query(`SELECT id, name FROM specialties ORDER BY name`);
+        const result = await db_1.pool.query(`
+      SELECT id, name FROM specialties ORDER BY name
+    `);
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.json(result.rows);
     }
     catch (err) {
