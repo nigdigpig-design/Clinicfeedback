@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const db_1 = require("../db");
@@ -61,6 +64,19 @@ router.get('/specialties', async (req, res) => {
     catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Ошибка получения специальностей' });
+    }
+});
+const qrcode_1 = __importDefault(require("qrcode"));
+// Добавьте этот маршрут после всех остальных, но до export default router
+router.get('/generate-qr', async (req, res) => {
+    try {
+        const frontendUrl = process.env.FRONTEND_URL || 'https://clinic-feedback-frontend.onrender.com';
+        const qrCodeDataURL = await qrcode_1.default.toDataURL(frontendUrl);
+        res.json({ qrCode: qrCodeDataURL });
+    }
+    catch (err) {
+        console.error('Ошибка генерации QR-кода:', err);
+        res.status(500).json({ error: 'Ошибка генерации QR-кода' });
     }
 });
 exports.default = router;
