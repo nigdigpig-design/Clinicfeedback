@@ -88,4 +88,47 @@ router.get('/generate-qr', async (req: AuthRequest, res) => {
     res.status(500).json({ error: 'Ошибка генерации QR-кода' });
   }
 });
+// Добавление новой специальности
+router.post('/specialties', async (req: AuthRequest, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Название специальности не может быть пустым' });
+    }
+    const result = await pool.query(
+      'INSERT INTO specialties (name, sort_order) VALUES ($1, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM specialties)) RETURNING *',
+      [name.trim()]
+    );
+    res.json(result.rows[0]);
+  } catch (err: any) {
+    if (err.code === '23505') {
+      res.status(400).json({ error: 'Такая специальность уже существует' });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Ошибка добавления специальности' });
+    }
+  }
+});
+
+// Добавление нового врача
+router.post('/doctors', async (req: AuthRequest, res) => {
+  try {
+    const { full_name, specialty_id } = req.body;
+    if (!full_name || full_name.trim() === '') {
+      return res.status(400).json({ error: 'ФИО врача не может быть пустым' });
+    }
+    if (!specialty_id) {
+      return res.status(400).json({ error: 'Необходимо выбрать специальность' });
+    }
+    const result = await pool.query(
+      'INSERT INTO doctors (full_name, specialty_id, is_active) VALUES ($1, $2, true) RETURNING *',
+      [full_name.trim(), specialty_id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка добавления врача' });
+  }
+});
+
 export default router;

@@ -13,6 +13,12 @@ const AdminPanel: React.FC = () => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [qrLoading, setQrLoading] = useState(false);
+  const [showAddSpecialty, setShowAddSpecialty] = useState(false);
+  const [showAddDoctor, setShowAddDoctor] = useState(false);
+  const [newSpecialtyName, setNewSpecialtyName] = useState('');
+  const [newDoctorName, setNewDoctorName] = useState('');
+  const [newDoctorSpecialty, setNewDoctorSpecialty] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const loadSpecialties = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -111,6 +117,54 @@ const AdminPanel: React.FC = () => {
     link.download = 'qr-code.png';
     link.click();
   };
+  const addSpecialty = async () => {
+  if (!newSpecialtyName.trim()) {
+    alert('Введите название специальности');
+    return;
+  }
+  setAdding(true);
+  const token = localStorage.getItem('token');
+  try {
+    await axios.post(`${API_URL}/admin/specialties`, 
+      { name: newSpecialtyName },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setNewSpecialtyName('');
+    setShowAddSpecialty(false);
+    loadSpecialties();
+  } catch (err: any) {
+    alert(err.response?.data?.error || 'Ошибка добавления');
+  } finally {
+    setAdding(false);
+  }
+};
+
+const addDoctor = async () => {
+  if (!newDoctorName.trim()) {
+    alert('Введите ФИО врача');
+    return;
+  }
+  if (!newDoctorSpecialty) {
+    alert('Выберите специальность');
+    return;
+  }
+  setAdding(true);
+  const token = localStorage.getItem('token');
+  try {
+    await axios.post(`${API_URL}/admin/doctors`,
+      { full_name: newDoctorName, specialty_id: newDoctorSpecialty },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setNewDoctorName('');
+    setNewDoctorSpecialty('');
+    setShowAddDoctor(false);
+    loadSpecialties();
+  } catch (err: any) {
+    alert(err.response?.data?.error || 'Ошибка добавления');
+  } finally {
+    setAdding(false);
+  }
+};
 
   return (
     <div style={{ padding: 20 }}>
@@ -189,6 +243,66 @@ const AdminPanel: React.FC = () => {
           </button>
         </div>
       </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: 15, borderTop: '1px solid #ddd', paddingTop: 15 }}>
+          <button 
+            onClick={() => setShowAddSpecialty(true)}
+            style={{ padding: '8px 16px', background: '#28a745', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer' }}
+          >
+            + Добавить специальность
+          </button>
+          <button 
+            onClick={() => setShowAddDoctor(true)}
+            style={{ padding: '8px 16px', background: '#007bff', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer' }}
+          >
+            + Добавить врача
+          </button>
+        </div>
+
+        {showAddSpecialty && (
+          <div style={{ marginTop: 15, padding: 15, background: '#e9ecef', borderRadius: 8 }}>
+            <h4>Новая специальность</h4>
+            <input
+              type="text"
+              placeholder="Например: Кардиолог"
+              value={newSpecialtyName}
+              onChange={(e) => setNewSpecialtyName(e.target.value)}
+              style={{ padding: 8, marginRight: 10, width: 200 }}
+            />
+            <button onClick={addSpecialty} disabled={adding} style={{ padding: '8px 16px', background: '#28a745', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
+              {adding ? 'Добавление...' : 'Добавить'}
+            </button>
+            <button onClick={() => setShowAddSpecialty(false)} style={{ padding: '8px 16px', background: '#6c757d', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer', marginLeft: 10 }}>
+              Отмена
+            </button>
+          </div>
+        )}
+
+        {showAddDoctor && (
+          <div style={{ marginTop: 15, padding: 15, background: '#e9ecef', borderRadius: 8 }}>
+            <h4>Новый врач</h4>
+            <input
+              type="text"
+              placeholder="ФИО врача"
+              value={newDoctorName}
+              onChange={(e) => setNewDoctorName(e.target.value)}
+              style={{ padding: 8, marginRight: 10, width: 250 }}
+            />
+            <select
+              value={newDoctorSpecialty}
+              onChange={(e) => setNewDoctorSpecialty(e.target.value)}
+              style={{ padding: 8, marginRight: 10 }}
+            >
+              <option value="">Выберите специальность</option>
+              {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <button onClick={addDoctor} disabled={adding} style={{ padding: '8px 16px', background: '#007bff', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
+              {adding ? 'Добавление...' : 'Добавить'}
+            </button>
+            <button onClick={() => setShowAddDoctor(false)} style={{ padding: '8px 16px', background: '#6c757d', color: 'white', border: 'none', borderRadius: 5, cursor: 'pointer', marginLeft: 10 }}>
+              Отмена
+            </button>
+          </div>
+        )}
 
       {loading ? (
         <p>Загрузка...</p>
