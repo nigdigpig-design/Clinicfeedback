@@ -75,4 +75,17 @@ router.get('/specialties', async (req: AuthRequest, res) => {
   }
 });
 
+import QRCode from 'qrcode';
+
+// Добавьте этот маршрут после всех остальных, но до export default router
+router.get('/generate-qr', async (req: AuthRequest, res) => {
+  try {
+    const frontendUrl = process.env.FRONTEND_URL || 'https://clinic-feedback-frontend.onrender.com';
+    const qrCodeDataURL = await QRCode.toDataURL(frontendUrl);
+    res.json({ qrCode: qrCodeDataURL });
+  } catch (err) {
+    console.error('Ошибка генерации QR-кода:', err);
+    res.status(500).json({ error: 'Ошибка генерации QR-кода' });
+  }
+});
 export default router;
