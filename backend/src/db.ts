@@ -1,3 +1,4 @@
+
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -11,7 +12,7 @@ export const pool = new Pool({
 });
 
 pool.on('connect', (client) => {
-  client.query('SET client_encoding = "UTF8MB4"');
+  client.query('SET client_encoding = "UTF8"');
 });
 
 pool.connect((err, client, release) => {
