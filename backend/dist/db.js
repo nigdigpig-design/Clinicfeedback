@@ -9,7 +9,8 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
+    client_encoding: 'UTF8'
 });
 exports.pool.on('connect', (client) => {
     client.query('SET client_encoding = "UTF8"');
