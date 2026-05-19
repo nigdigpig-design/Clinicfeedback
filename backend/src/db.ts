@@ -11,7 +11,7 @@ export const pool = new Pool({
 });
 
 pool.on('connect', (client) => {
-  client.query('SET client_encoding = "UTF8"');
+  client.query('SET client_encoding = "UTF8MB4"');
 });
 
 pool.connect((err, client, release) => {

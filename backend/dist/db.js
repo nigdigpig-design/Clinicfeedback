@@ -13,7 +13,7 @@ exports.pool = new pg_1.Pool({
     client_encoding: 'UTF8'
 });
 exports.pool.on('connect', (client) => {
-    client.query('SET client_encoding = "UTF8"');
+    client.query('SET client_encoding = "UTF8MB4"');
 });
 exports.pool.connect((err, client, release) => {
     if (err) {
