@@ -4,6 +4,24 @@ const express_1 = require("express");
 const db_1 = require("../db");
 const encoding_1 = require("../utils/encoding");
 const router = (0, express_1.Router)();
+// POST /api/feedback — сохранить новый отзыв
+router.post('/', async (req, res) => {
+    try {
+        const { doctor_id, rating, comment, is_anonymous } = req.body;
+        // Валидация
+        if (!doctor_id || !rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ error: 'Некорректные данные' });
+        }
+        const result = await db_1.pool.query(`INSERT INTO feedbacks (doctor_id, rating, comment, is_anonymous)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, created_at`, [doctor_id, rating, comment || null, is_anonymous || true]);
+        res.json({ success: true, feedback: result.rows[0] });
+    }
+    catch (err) {
+        console.error('Ошибка сохранения отзыва:', err);
+        res.status(500).json({ error: 'Ошибка сохранения отзыва' });
+    }
+});
 // GET /api/feedback/doctor/:doctorId — получить отзывы о враче
 router.get('/doctor/:doctorId', async (req, res) => {
     try {
@@ -18,7 +36,6 @@ router.get('/doctor/:doctorId', async (req, res) => {
       WHERE f.doctor_id = $1
       ORDER BY f.created_at DESC
       LIMIT 20`, [doctorId]);
-        // Перекодируем результат
         const decodedRows = (0, encoding_1.convertObjectToUtf8)(result.rows);
         res.json(decodedRows);
     }
