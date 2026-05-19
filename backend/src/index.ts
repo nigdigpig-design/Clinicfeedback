@@ -14,8 +14,6 @@ const PORT = process.env.PORT || 5000;
 // ✅ ЭТОТ БЛОК — ПЕРВЫЙ middleware
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  // Также устанавливаем для HTML-ответов (если будут)
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   next();
 });
 
